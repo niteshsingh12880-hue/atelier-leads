@@ -2,19 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ClipboardList, Home, Mail, MessageCircle, Plus, Send, Trash2, Upload, UsersRound } from "lucide-react";
+import { BarChart3, CheckCircle2, ClipboardList, Home, Mail, MessageCircle, Plus, Send, Trash2, Upload, UsersRound } from "lucide-react";
 import { AuthGate, SessionBadge } from "@/lib/auth";
-import { createPitch, Lead, LeadStatus, normalizeLeads, scoreLead, ServiceIntent, serviceBenefit, services, starterLeads, statuses, storageKey } from "@/lib/leads";
+import { createPitch, Lead, LeadStatus, scoreLead, ServiceIntent, serviceBenefit, services, statuses } from "@/lib/leads";
+import { getLeads, getMarketplaceStats, getRequirements, saveLeads } from "@/lib/platform";
 
 function getStoredLeads() {
-  if (typeof window === "undefined") return starterLeads;
-  const saved = window.localStorage.getItem(storageKey);
-  if (!saved) return starterLeads;
-  try {
-    return normalizeLeads(JSON.parse(saved) as Partial<Lead>[]);
-  } catch {
-    return starterLeads;
-  }
+  if (typeof window === "undefined") return [];
+  return getLeads();
 }
 
 export default function FreelancerPage() {
@@ -29,11 +24,14 @@ export default function FreelancerPage() {
   ]);
   const [form, setForm] = useState({ business: "", niche: "", city: "", website: "", issue: "", email: "", service: "Website" as ServiceIntent });
 
-  useEffect(() => window.localStorage.setItem(storageKey, JSON.stringify(leads)), [leads]);
+  useEffect(() => saveLeads(leads), [leads]);
 
   const filteredLeads = serviceFilter === "All" ? leads : leads.filter((lead) => lead.service === serviceFilter);
   const selectedLead = leads.find((lead) => lead.id === selectedId) ?? filteredLeads[0] ?? leads[0];
   const pitch = selectedLead ? createPitch(selectedLead) : "Add or select a lead to generate outreach.";
+
+  const marketplaceStats = typeof window === "undefined" ? { openRequirements: 0, inboundRequirements: 0, activeFreelancers: 1, estimatedPipelineValue: "$0" } : getMarketplaceStats();
+  const openRequirements = typeof window === "undefined" ? [] : getRequirements().filter((item) => item.status === "Open").slice(0, 3);
 
   const pipeline = useMemo(
     () => statuses.map((status) => ({ status, count: leads.filter((lead) => lead.status === status).length })),
@@ -113,7 +111,13 @@ export default function FreelancerPage() {
 
       <section className="relative z-10 mx-auto max-w-7xl px-6 pb-8">
         <h2 className="max-w-4xl font-serif text-5xl font-semibold leading-none md:text-7xl">Manage prospects and inbound requirements separately.</h2>
-        <p className="mt-4 max-w-2xl text-white/60">This page is only for freelancers: CRM, CSV import, pipeline, outreach generator, and AI sales assistant.</p>
+        <p className="mt-4 max-w-2xl text-white/60">This page is only for freelancers: CRM, CSV import, marketplace requirements, outreach generator, and AI sales assistant.</p>
+        <div className="mt-6 grid max-w-4xl gap-3 sm:grid-cols-4">
+          <Stat label="Open requests" value={marketplaceStats.openRequirements} />
+          <Stat label="Inbound leads" value={marketplaceStats.inboundRequirements} />
+          <Stat label="Freelancers" value={marketplaceStats.activeFreelancers} />
+          <Stat label="Pipeline" value={marketplaceStats.estimatedPipelineValue} />
+        </div>
       </section>
 
       <section className="relative z-10 mx-auto grid max-w-7xl gap-5 px-6 pb-20 lg:grid-cols-[0.9fr_1.1fr]">
@@ -129,6 +133,18 @@ export default function FreelancerPage() {
               </select>
             </div>
             <button onClick={addLead} className="mt-4 w-full rounded-full bg-white px-5 py-3 font-bold text-black">Add Lead</button>
+          </div>
+
+          <div className="rounded-[2rem] border border-cyan-300/20 bg-cyan-400/[0.08] p-5 backdrop-blur-2xl">
+            <h3 className="flex items-center gap-2 text-xl font-semibold"><BarChart3 className="size-5" /> Open marketplace requirements</h3>
+            <div className="mt-4 space-y-3">
+              {openRequirements.length ? openRequirements.map((requirement) => (
+                <div key={requirement.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                  <div className="flex items-start justify-between gap-3"><div><b>{requirement.business}</b><p className="mt-1 text-sm text-white/50">{requirement.service} • {requirement.city || "Remote"}</p></div><span className="rounded-full bg-cyan-200 px-3 py-1 text-xs font-bold text-black">{requirement.status}</span></div>
+                  <p className="mt-2 text-sm leading-6 text-white/60">{requirement.requirement}</p>
+                </div>
+              )) : <p className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/50">No open business requirements yet. Business owner posts will appear here.</p>}
+            </div>
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.08] p-5 backdrop-blur-2xl">
@@ -172,4 +188,8 @@ export default function FreelancerPage() {
       </main>
     </AuthGate>
   );
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return <div className="rounded-2xl border border-white/10 bg-white/[0.08] p-4"><p className="text-2xl font-bold">{value}</p><p className="mt-1 text-xs text-white/45">{label}</p></div>;
 }

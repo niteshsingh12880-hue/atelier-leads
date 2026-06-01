@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BriefcaseBusiness, Building2, LockKeyhole, LogOut, UserRound } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { upsertProfile } from "@/lib/platform";
 
 export type UserRole = "freelancer" | "business";
 
@@ -44,6 +45,7 @@ export function getSession() {
 
 export function saveSession(session: AuthSession) {
   window.localStorage.setItem(authStorageKey, JSON.stringify(session));
+  upsertProfile(session);
 }
 
 export function clearSession() {

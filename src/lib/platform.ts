@@ -30,11 +30,25 @@ export type MarketplaceStats = {
   openRequirements: number;
   inboundRequirements: number;
   activeFreelancers: number;
+  totalApplications: number;
   estimatedPipelineValue: string;
+};
+
+export type ApplicationStatus = "Submitted" | "Shortlisted" | "Accepted" | "Rejected";
+
+export type FreelancerApplication = {
+  id: string;
+  requirementId: string;
+  freelancerName: string;
+  freelancerEmail: string;
+  pitch: string;
+  status: ApplicationStatus;
+  createdAt: string;
 };
 
 export const requirementsStorageKey = "atelier-requirements-data";
 export const profilesStorageKey = "atelier-profiles-data";
+export const applicationsStorageKey = "atelier-applications-data";
 
 export const providerMode: ProviderMode = process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase-ready" : "local";
 
@@ -89,6 +103,35 @@ export function saveRequirements(requirements: BusinessRequirement[]) {
   safeWrite(requirementsStorageKey, requirements);
 }
 
+export function getApplications() {
+  return safeRead<FreelancerApplication[]>(applicationsStorageKey, []);
+}
+
+export function saveApplications(applications: FreelancerApplication[]) {
+  safeWrite(applicationsStorageKey, applications);
+}
+
+export function createApplication(input: Omit<FreelancerApplication, "id" | "status" | "createdAt">) {
+  const applications = getApplications();
+  const existing = applications.find((item) => item.requirementId === input.requirementId && item.freelancerEmail.toLowerCase() === input.freelancerEmail.toLowerCase());
+  const application: FreelancerApplication = {
+    ...input,
+    id: existing?.id ?? crypto.randomUUID(),
+    status: existing?.status ?? "Submitted",
+    createdAt: existing?.createdAt ?? new Date().toISOString(),
+  };
+  saveApplications([application, ...applications.filter((item) => item.id !== application.id)]);
+  return application;
+}
+
+export function updateApplicationStatus(id: string, status: ApplicationStatus) {
+  saveApplications(getApplications().map((item) => item.id === id ? { ...item, status } : item));
+}
+
+export function updateRequirementStatus(id: string, status: RequirementStatus) {
+  saveRequirements(getRequirements().map((item) => item.id === id ? { ...item, status } : item));
+}
+
 export function createRequirement(input: Omit<BusinessRequirement, "id" | "status" | "createdAt">) {
   const requirement: BusinessRequirement = {
     ...input,
@@ -129,6 +172,7 @@ export function getMarketplaceStats(): MarketplaceStats {
   const requirements = getRequirements();
   const leads = getLeads();
   const profiles = getProfiles();
+  const applications = getApplications();
   const openRequirements = requirements.filter((item) => item.status === "Open").length;
   const inboundRequirements = leads.filter((lead) => lead.source === "Inbound Requirement").length;
   const activeFreelancers = Math.max(1, profiles.filter((profile) => profile.role === "freelancer").length);
@@ -141,6 +185,7 @@ export function getMarketplaceStats(): MarketplaceStats {
     openRequirements,
     inboundRequirements,
     activeFreelancers,
+    totalApplications: applications.length,
     estimatedPipelineValue: `$${estimated.toLocaleString()}`,
   };
 }

@@ -8,7 +8,7 @@ import { addRequirementToPipeline, createRequirement, getMarketplaceStats } from
 import { ServiceIntent, services } from "@/lib/leads";
 
 function getStats() {
-  if (typeof window === "undefined") return { openRequirements: 0, inboundRequirements: 0, activeFreelancers: 1, estimatedPipelineValue: "$0" };
+  if (typeof window === "undefined") return { openRequirements: 0, inboundRequirements: 0, activeFreelancers: 1, totalApplications: 0, estimatedPipelineValue: "$0" };
   return getMarketplaceStats();
 }
 

@@ -9,6 +9,8 @@ This app is now structured so the UI can run locally today and move to Supabase/
 - Requirement model: business owners post marketplace requirements.
 - Lead model: requirements are converted into freelancer CRM leads.
 - Repository layer: `src/lib/platform.ts` centralizes profiles, leads, requirements, and stats.
+- Proposal/application model: freelancers can send proposals against open requirements.
+- Admin dashboard: `/admin` can review requirements, proposals, and profiles in local/Supabase-ready mode.
 - Current provider: localStorage fallback for GitHub Pages.
 - Future provider: Supabase/Postgres using the schema below.
 
@@ -18,6 +20,8 @@ This app is now structured so the UI can run locally today and move to Supabase/
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
+
+When these variables are available, `src/lib/supabase.ts` initializes the Supabase client. The current GitHub Pages deployment keeps local fallback active so it still runs without secrets.
 
 ## Tables
 

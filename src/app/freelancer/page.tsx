@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BarChart3, CheckCircle2, ClipboardList, Home, Mail, MessageCircle, Plus, Send, Trash2, Upload, UsersRound } from "lucide-react";
-import { AuthGate, SessionBadge } from "@/lib/auth";
+import { AuthGate, getSession, SessionBadge } from "@/lib/auth";
 import { createPitch, Lead, LeadStatus, scoreLead, ServiceIntent, serviceBenefit, services, statuses } from "@/lib/leads";
-import { getLeads, getMarketplaceStats, getRequirements, saveLeads } from "@/lib/platform";
+import { createApplication, getLeads, getMarketplaceStats, getRequirements, saveLeads } from "@/lib/platform";
 
 function getStoredLeads() {
   if (typeof window === "undefined") return [];
@@ -17,6 +17,7 @@ export default function FreelancerPage() {
   const [selectedId, setSelectedId] = useState(() => getStoredLeads()[0]?.id ?? "");
   const [csv, setCsv] = useState("");
   const [copied, setCopied] = useState(false);
+  const [proposalNotice, setProposalNotice] = useState("");
   const [serviceFilter, setServiceFilter] = useState<ServiceIntent | "All">("All");
   const [chatInput, setChatInput] = useState("");
   const [chatLog, setChatLog] = useState([
@@ -30,7 +31,7 @@ export default function FreelancerPage() {
   const selectedLead = leads.find((lead) => lead.id === selectedId) ?? filteredLeads[0] ?? leads[0];
   const pitch = selectedLead ? createPitch(selectedLead) : "Add or select a lead to generate outreach.";
 
-  const marketplaceStats = typeof window === "undefined" ? { openRequirements: 0, inboundRequirements: 0, activeFreelancers: 1, estimatedPipelineValue: "$0" } : getMarketplaceStats();
+  const marketplaceStats = typeof window === "undefined" ? { openRequirements: 0, inboundRequirements: 0, activeFreelancers: 1, totalApplications: 0, estimatedPipelineValue: "$0" } : getMarketplaceStats();
   const openRequirements = typeof window === "undefined" ? [] : getRequirements().filter((item) => item.status === "Open").slice(0, 3);
 
   const pipeline = useMemo(
@@ -94,6 +95,21 @@ export default function FreelancerPage() {
     setChatInput("");
   }
 
+  function applyToRequirement(requirementId: string) {
+    const session = getSession();
+    if (!session) return;
+    const requirement = openRequirements.find((item) => item.id === requirementId);
+    if (!requirement) return;
+    createApplication({
+      requirementId,
+      freelancerName: session.name,
+      freelancerEmail: session.email,
+      pitch: `Hi ${requirement.business}, I can help with your ${requirement.service} requirement. I will start with a quick audit, show the fastest win, then share a clear delivery plan.`,
+    });
+    setProposalNotice(`Proposal sent to ${requirement.business}`);
+    window.setTimeout(() => setProposalNotice(""), 1800);
+  }
+
   async function copyPitch() {
     await navigator.clipboard.writeText(pitch);
     setCopied(true);
@@ -116,7 +132,7 @@ export default function FreelancerPage() {
           <Stat label="Open requests" value={marketplaceStats.openRequirements} />
           <Stat label="Inbound leads" value={marketplaceStats.inboundRequirements} />
           <Stat label="Freelancers" value={marketplaceStats.activeFreelancers} />
-          <Stat label="Pipeline" value={marketplaceStats.estimatedPipelineValue} />
+          <Stat label="Proposals" value={marketplaceStats.totalApplications} />
         </div>
       </section>
 
@@ -142,9 +158,11 @@ export default function FreelancerPage() {
                 <div key={requirement.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
                   <div className="flex items-start justify-between gap-3"><div><b>{requirement.business}</b><p className="mt-1 text-sm text-white/50">{requirement.service} • {requirement.city || "Remote"}</p></div><span className="rounded-full bg-cyan-200 px-3 py-1 text-xs font-bold text-black">{requirement.status}</span></div>
                   <p className="mt-2 text-sm leading-6 text-white/60">{requirement.requirement}</p>
+                  <button onClick={() => applyToRequirement(requirement.id)} className="mt-3 rounded-full bg-cyan-200 px-4 py-2 text-xs font-bold text-black">Send proposal</button>
                 </div>
               )) : <p className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/50">No open business requirements yet. Business owner posts will appear here.</p>}
             </div>
+            {proposalNotice && <p className="mt-3 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 p-3 text-sm text-emerald-100">{proposalNotice}</p>}
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.08] p-5 backdrop-blur-2xl">

@@ -38,7 +38,7 @@ export default function Home() {
           <span className="text-xl font-semibold">Atelier-Leads</span>
         </div>
         <div className="hidden rounded-full border border-white/10 bg-white/[0.07] px-6 py-3 text-sm text-white/78 backdrop-blur-2xl md:flex md:gap-8">
-          <SessionBadge />
+          <div className="flex items-center gap-3"><Link href="/admin" className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm">Admin</Link><SessionBadge /></div>
         </div>
       </nav>
 

@@ -25,6 +25,8 @@ const stats = ["Designers", "Developers", "Copywriters", "Agencies", "Service Pr
 
 export default function Home() {
   const [videoReady, setVideoReady] = useState(false);
+  const [email, setEmail] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => setVideoReady(true), 700);
@@ -96,19 +98,36 @@ export default function Home() {
           Atelier-Leads helps freelancers discover potential clients, improve their online presence, and turn cold outreach into real business opportunities.
         </p>
 
-        <form className="mt-10 flex w-full max-w-2xl flex-col gap-3 rounded-[2rem] border border-white/15 bg-white/[0.09] p-2 shadow-2xl shadow-black/35 backdrop-blur-2xl sm:flex-row">
+        <form
+          id="signup"
+          className="mt-10 flex w-full max-w-2xl flex-col gap-3 rounded-[2rem] border border-white/15 bg-white/[0.09] p-2 shadow-2xl shadow-black/35 backdrop-blur-2xl sm:flex-row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!email.trim()) return;
+            setSubmittedEmail(email.trim());
+          }}
+        >
           <label className="relative flex flex-1 items-center">
             <Mail className="pointer-events-none absolute left-5 size-5 text-white/45" />
             <input
               type="email"
               placeholder="Enter your email to get early access"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
               className="h-14 w-full rounded-full border border-white/10 bg-black/20 pl-13 pr-5 text-sm text-white outline-none ring-0 placeholder:text-white/43 focus:border-white/30"
             />
           </label>
-          <button className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-bold text-black transition hover:scale-[1.01] hover:bg-white/90" type="button">
+          <button className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-bold text-black transition hover:scale-[1.01] hover:bg-white/90" type="submit">
             Get Client Leads <ArrowRight className="size-4" />
           </button>
         </form>
+
+        {submittedEmail && (
+          <div className="mt-4 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-5 py-3 text-sm text-emerald-100 backdrop-blur-xl">
+            Done. Early access request saved for {submittedEmail}. Next: choose a niche and start with 25 leads.
+          </div>
+        )}
 
         <div className="mt-5 flex flex-col items-center gap-4 sm:flex-row">
           <a href="#how-it-works" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-6 py-3 text-sm font-semibold text-white shadow-2xl shadow-black/20 backdrop-blur-2xl transition hover:bg-white/14">
@@ -130,7 +149,32 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto flex max-w-7xl items-center justify-between border-t border-white/10 px-6 py-6 text-sm text-white/50">
+      <section id="how-it-works" className="relative z-10 mx-auto grid max-w-7xl gap-4 px-6 py-16 md:grid-cols-3">
+        {[
+          ["01", "Choose your niche", "Pick restaurants, clinics, salons, coaches, agencies, or any service market."],
+          ["02", "Find weak websites", "Upload a CSV or research local businesses that need better design, copy, SEO, or booking flow."],
+          ["03", "Send better pitches", "Use the audit angle to create a personal message and track replies in your pipeline."],
+        ].map(([num, title, body]) => (
+          <article key={title} className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-7 shadow-2xl shadow-black/25 backdrop-blur-2xl">
+            <p className="font-serif text-5xl text-white/35">{num}</p>
+            <h2 className="mt-8 text-2xl font-semibold text-white">{title}</h2>
+            <p className="mt-4 leading-7 text-white/58">{body}</p>
+          </article>
+        ))}
+      </section>
+
+      <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-6 pb-16">
+        <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.08] p-8 shadow-2xl shadow-black/30 backdrop-blur-2xl md:flex md:items-center md:justify-between md:p-12">
+          <div>
+            <p className="text-sm uppercase tracking-[0.26em] text-white/45">Early access</p>
+            <h2 className="mt-4 font-serif text-5xl font-semibold tracking-tight md:text-6xl">Start free while we build.</h2>
+            <p className="mt-5 max-w-2xl text-white/60">MVP includes email capture, niche workflow, lead scoring concept, and outreach structure. Next version will add real lead CRM and AI audit generation.</p>
+          </div>
+          <a href="#signup" className="mt-8 inline-flex rounded-full bg-white px-7 py-4 text-sm font-bold text-black md:mt-0">Join Early Access</a>
+        </div>
+      </section>
+
+      <footer id="login" className="relative z-10 mx-auto flex max-w-7xl items-center justify-between border-t border-white/10 px-6 py-6 text-sm text-white/50">
         <span>© 2026 Atelier-Leads. Premium client acquisition workspace.</span>
         <div className="flex items-center gap-3">
           <a aria-label="Instagram" className="rounded-full border border-white/10 bg-white/[0.06] p-2.5 backdrop-blur-xl transition hover:text-white" href="#"><Camera className="size-4" /></a>

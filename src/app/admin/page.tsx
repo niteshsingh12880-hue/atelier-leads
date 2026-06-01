@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowLeft, ShieldCheck, UsersRound, ClipboardList, Send } from "lucide-react";
+import { FormEvent, useState } from "react";
+import { ArrowLeft, ShieldCheck, UsersRound, ClipboardList, Send, LockKeyhole } from "lucide-react";
 import { ApplicationStatus, BusinessRequirement, getApplications, getMarketplaceStats, getProfiles, getRequirements, RequirementStatus, updateApplicationStatus, updateRequirementStatus } from "@/lib/platform";
+
+const adminAuthKey = "atelier-admin-unlocked";
+const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "Atelier@Admin2026";
 
 function loadAdminData() {
   if (typeof window === "undefined") return { stats: { openRequirements: 0, inboundRequirements: 0, activeFreelancers: 1, totalApplications: 0, estimatedPipelineValue: "$0" }, requirements: [] as BusinessRequirement[], applications: [] as ReturnType<typeof getApplications>, profiles: [] as ReturnType<typeof getProfiles> };
@@ -11,6 +14,7 @@ function loadAdminData() {
 }
 
 export default function AdminPage() {
+  const [unlocked, setUnlocked] = useState(() => typeof window !== "undefined" && window.sessionStorage.getItem(adminAuthKey) === "true");
   const [data, setData] = useState(loadAdminData);
 
   function refresh() {
@@ -27,12 +31,14 @@ export default function AdminPage() {
     refresh();
   }
 
+  if (!unlocked) return <AdminPasswordGate onUnlock={() => setUnlocked(true)} />;
+
   return (
     <main className="min-h-screen bg-[#050507] px-6 py-8 text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(167,139,250,0.2),transparent_30rem),linear-gradient(180deg,#050507,#09090c)]" />
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm"><ArrowLeft className="size-4" /> Home</Link>
-        <span className="inline-flex items-center gap-2 rounded-full border border-purple-300/20 bg-purple-300/10 px-4 py-2 text-sm text-purple-100"><ShieldCheck className="size-4" /> Admin Console</span>
+        <button onClick={() => { window.sessionStorage.removeItem(adminAuthKey); setUnlocked(false); }} className="inline-flex items-center gap-2 rounded-full border border-purple-300/20 bg-purple-300/10 px-4 py-2 text-sm text-purple-100"><ShieldCheck className="size-4" /> Lock Admin</button>
       </nav>
 
       <section className="relative z-10 mx-auto max-w-7xl py-12">
@@ -72,6 +78,37 @@ export default function AdminPage() {
           {data.profiles.length ? data.profiles.map((profile) => <div key={profile.id} className="rounded-2xl border border-white/10 bg-black/25 p-4"><b>{profile.name}</b><p className="mt-1 text-sm text-white/50">{profile.email} • {profile.role}</p></div>) : <Empty>No profiles yet.</Empty>}
         </Panel>
       </section>
+    </main>
+  );
+}
+
+function AdminPasswordGate({ onUnlock }: { onUnlock: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (password !== adminPassword) {
+      setError("Wrong admin password.");
+      return;
+    }
+    window.sessionStorage.setItem(adminAuthKey, "true");
+    setError("");
+    onUnlock();
+  }
+
+  return (
+    <main className="grid min-h-screen place-items-center bg-[#050507] px-6 text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(167,139,250,0.2),transparent_30rem),linear-gradient(180deg,#050507,#09090c)]" />
+      <form onSubmit={submit} className="relative z-10 w-full max-w-md rounded-[2rem] border border-white/10 bg-white/[0.08] p-8 text-center backdrop-blur-2xl">
+        <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-white text-black"><LockKeyhole className="size-6" /></div>
+        <h1 className="mt-6 text-4xl font-semibold">Admin locked</h1>
+        <p className="mt-3 text-sm leading-6 text-white/60">Admin console open karne ke liye password required hai.</p>
+        <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="Enter admin password" className="mt-6 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/35 focus:border-purple-200/60" />
+        {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
+        <button type="submit" className="mt-5 w-full rounded-full bg-white px-6 py-3 font-bold text-black">Unlock admin</button>
+        <Link href="/" className="mt-4 inline-flex text-sm text-white/55 hover:text-white">Back to home</Link>
+      </form>
     </main>
   );
 }

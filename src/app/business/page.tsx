@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Building2, CheckCircle2, Home, Send, Sparkles } from "lucide-react";
+import { AuthGate, SessionBadge } from "@/lib/auth";
 import { Lead, normalizeLeads, scoreLead, ServiceIntent, services, starterLeads, storageKey } from "@/lib/leads";
 
 function getStoredLeads() {
@@ -53,11 +54,12 @@ export default function BusinessPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050507] text-white">
+    <AuthGate allowedRole="business">
+      <main className="min-h-screen bg-[#050507] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_30rem),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.16),transparent_28rem),linear-gradient(180deg,#050507,#09090c)]" />
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <div><p className="text-xs uppercase tracking-[0.28em] text-cyan-100/60">Business Owner Portal</p><h1 className="text-2xl font-semibold">Post your requirement</h1></div>
-        <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm"><Home className="size-4" /> Home</Link>
+        <div className="flex flex-wrap items-center justify-end gap-2"><SessionBadge /><Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm"><Home className="size-4" /> Home</Link></div>
       </nav>
 
       <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-6 pb-20 pt-8 lg:grid-cols-[0.8fr_1.2fr]">
@@ -93,6 +95,7 @@ export default function BusinessPage() {
           {posted && <div className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 p-4 text-sm text-emerald-100"><CheckCircle2 className="size-5" /> Submitted. Freelancer dashboard me inbound lead add ho gaya.</div>}
         </div>
       </section>
-    </main>
+      </main>
+    </AuthGate>
   );
 }

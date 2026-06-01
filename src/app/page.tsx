@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { SessionBadge } from "@/lib/auth";
 import { ArrowRight, BriefcaseBusiness, Building2, Globe, MapPinned, MessageCircle, Search, Sparkles } from "lucide-react";
 
 const roles = [
   {
     title: "Join as Freelancer",
-    href: "/freelancer",
+    href: "/login",
     icon: BriefcaseBusiness,
     kicker: "CRM + outreach workspace",
     copy: "Find leads, track pipeline, generate pitches, and convert website, SEO, Google Profile, and AI chatbot prospects.",
@@ -12,7 +13,7 @@ const roles = [
   },
   {
     title: "Join as Business Owner",
-    href: "/business",
+    href: "/login",
     icon: Building2,
     kicker: "Post your project requirement",
     copy: "Tell freelancers what you want built or optimized: website, SEO, Google Business Profile, or 24x7 AI chatbot.",
@@ -37,7 +38,7 @@ export default function Home() {
           <span className="text-xl font-semibold">Atelier-Leads</span>
         </div>
         <div className="hidden rounded-full border border-white/10 bg-white/[0.07] px-6 py-3 text-sm text-white/78 backdrop-blur-2xl md:flex md:gap-8">
-          <Link href="/freelancer">Freelancer</Link><Link href="/business">Business Owner</Link>
+          <SessionBadge />
         </div>
       </nav>
 
@@ -49,7 +50,7 @@ export default function Home() {
           One platform. Two clear journeys.
         </h1>
         <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/68">
-          Freelancers manage leads and outreach. Business owners post requirements. No mixed dashboard, no confusion.
+          Login first. Then we lock the experience by role: freelancers manage leads, business owners post requirements. No mixed dashboard, no confusion.
         </p>
       </section>
 

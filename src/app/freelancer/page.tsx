@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, ClipboardList, Home, Mail, MessageCircle, Plus, Send, Trash2, Upload, UsersRound } from "lucide-react";
+import { AuthGate, SessionBadge } from "@/lib/auth";
 import { createPitch, Lead, LeadStatus, normalizeLeads, scoreLead, ServiceIntent, serviceBenefit, services, starterLeads, statuses, storageKey } from "@/lib/leads";
 
 function getStoredLeads() {
@@ -102,11 +103,12 @@ export default function FreelancerPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050507] text-white">
+    <AuthGate allowedRole="freelancer">
+      <main className="min-h-screen bg-[#050507] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.14),transparent_28rem),linear-gradient(180deg,#050507,#09090c)]" />
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <div><p className="text-xs uppercase tracking-[0.28em] text-cyan-100/60">Freelancer Workspace</p><h1 className="text-2xl font-semibold">Atelier-Leads CRM</h1></div>
-        <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm"><Home className="size-4" /> Home</Link>
+        <div className="flex flex-wrap items-center justify-end gap-2"><SessionBadge /><Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm"><Home className="size-4" /> Home</Link></div>
       </nav>
 
       <section className="relative z-10 mx-auto max-w-7xl px-6 pb-8">
@@ -167,6 +169,7 @@ export default function FreelancerPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </AuthGate>
   );
 }
